@@ -45,16 +45,64 @@ class AdultIncomeSageMakerStack(Stack):
         s3_client  = boto3.client("s3",  region_name=aws_region)
 
         # ─── VPC + Subnets (external — default VPC) ──────────
-        vpcs = ec2_client.describe_vpcs(
-            Filters=[{"Name": "isDefault", "Values": ["true"]}]
-        )
-        vpc_id = vpcs["Vpcs"][0]["VpcId"]
-        subnets = ec2_client.describe_subnets(
-            Filters=[{"Name": "vpc-id", "Values": [vpc_id]}]
-        )
-        subnet_ids = [s["SubnetId"] for s in subnets["Subnets"]][:2]
-        print(f"✅ VPC ID   : {vpc_id}")
-        print(f"✅ Subnets  : {subnet_ids}")
+        try:
+            # First try to find the default VPC
+            vpcs = ec2_client.describe_vpcs(
+                Filters=[
+                    {
+                        "Name": "is-default",
+                        "Values": ["true"]
+                    }
+                ]
+            )
+
+            # If no default VPC exists, fall back to the first available VPC
+            if not vpcs["Vpcs"]:
+                print("⚠️ Default VPC not found. Looking for any available VPC...")
+                vpcs = ec2_client.describe_vpcs()
+
+            if not vpcs["Vpcs"]:
+                raise Exception(
+                    f"No VPC found in AWS Account {account} Region {aws_region}."
+                )
+
+            vpc_id = vpcs["Vpcs"][0]["VpcId"]
+
+            subnets = ec2_client.describe_subnets(
+                Filters=[
+                    {
+                        "Name": "vpc-id",
+                        "Values": [vpc_id]
+                    }
+                ]
+            )
+
+            subnet_ids = [s["SubnetId"] for s in subnets["Subnets"]]
+
+            if len(subnet_ids) < 2:
+                raise Exception(
+                    f"VPC {vpc_id} has only {len(subnet_ids)} subnet(s). SageMaker Studio requires at least two subnets."
+                )
+
+            subnet_ids = subnet_ids[:2]
+
+            print(f"✅ Using VPC     : {vpc_id}")
+            print(f"✅ Using Subnets : {subnet_ids}")
+
+        except Exception as e:
+            raise Exception(
+                f"""
+Unable to locate a usable VPC.
+
+AWS Account : {account}
+AWS Region  : {aws_region}
+
+Reason:
+{str(e)}
+
+Create a VPC with at least two subnets or deploy into a region where one already exists.
+"""
+            )
 
         # ─── 1. S3 Bucket — external, import if exists ───────
         # The bucket holds training data and pipeline outputs, and
