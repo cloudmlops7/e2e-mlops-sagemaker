@@ -15,7 +15,7 @@ AdultIncomeSageMakerStack(
     app,
     "AdultIncomeSageMakerStack",
     env=cdk.Environment(account=account, region=region),
-    github_repo="cloud_user/e2e-mlops-sagemaker"
+    github_repo="mohanprasadn7mlops/e2e-mlops-sagemaker"
 )
 
 app.synth()
