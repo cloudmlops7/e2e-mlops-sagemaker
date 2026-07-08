@@ -107,7 +107,7 @@ def run_pipeline():
         entry_point="train.py",
         source_dir="pipeline",
         role=role,
-        instance_type="ml.t3.medium",
+        instance_type="ml.m5.xlarge",
         instance_count=1,
         framework_version="1.2-1",
         use_spot_instances=True,
@@ -143,7 +143,7 @@ def run_pipeline():
     evaluator = SKLearnProcessor(
         framework_version="1.2-1",
         role=role,
-        instance_type="ml.t3.medium",
+        instance_type="ml.m5.xlarge",
         instance_count=1,
         sagemaker_session=session
     )
@@ -196,8 +196,8 @@ def run_pipeline():
                   .ModelArtifacts.S3ModelArtifacts,
         content_types=["text/csv"],
         response_types=["text/csv"],
-        inference_instances=["ml.t3.medium"],
-        transform_instances=["ml.t3.medium"],
+        inference_instances=["ml.m5.xlarge"],
+        transform_instances=["ml.m5.xlarge"],
         model_package_group_name="AdultIncomeGroup",
         approval_status="PendingManualApproval",
         model_metrics=model_metrics
