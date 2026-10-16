@@ -159,7 +159,7 @@ Create a VPC with at least two subnets or deploy into a region where one already
                     .KernelGatewayAppSettingsProperty(
                         default_resource_spec=sagemaker.CfnDomain\
                             .ResourceSpecProperty(
-                                instance_type="ml.m5.xlare"
+                                instance_type="ml.m5.xlarge"
                             )
                     )
             ),
